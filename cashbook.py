@@ -8,8 +8,13 @@ DATA_FILE = Path("data.tsv")
 def read_data_file(year, month):
     """データファイルから年月で指定したデータ読み込む"""
     rows = []
+
+    if not DATA_FILE.exists():
+        return rows
+
     with DATA_FILE.open() as f:
         for row in f:
+            # 末尾の改行を除去
             row = row.strip()
             cols = row.split("\t")
             cf_year, cf_month, cf_day = int(cols[0]), int(cols[1]), int(cols[2])
@@ -24,7 +29,7 @@ def read_data_file(year, month):
 
 
 def get_last_date(year, month):
-    """指定した年月の最後の日を取得する"""
+    """指定した年月の月末日を取得する"""
     if month == 12:
         last_date = datetime(year, month, 31)
     else:
@@ -44,15 +49,14 @@ def show_cashflow(year, month):
     income = 0
     # 支出の合計
     payment = 0
-    if DATA_FILE.exists():
-        # 指定した年月のデータ
-        rows = read_data_file(year, month)
-        for row in rows:
-            print(f"{row['cf_date']:%m/%d(%a)}\t{row['note']}\t{row['amount']}")
-            if row["amount"] >= 0:
-                income += row["amount"]
-            else:
-                payment += row["amount"]
+    # 指定した年月のデータ
+    rows = read_data_file(year, month)
+    for row in rows:
+        print(f"{row['cf_date']:%m/%d(%a)}\t{row['note']}\t{row['amount']}")
+        if row["amount"] >= 0:
+            income += row["amount"]
+        else:
+            payment += row["amount"]
 
     print()
     print("(収入) - (支出) = (収支)")
@@ -98,12 +102,14 @@ def input_cashflow(is_payment):
     if is_payment:
         amount = amount * -1
 
+    # 収支を記録
     add_cashflow(cf_date, note, amount)
+    # 現在の月の収支明細を表示する
     show_current_cashflow()
 
 
 def input_show_month():
-    """年月を入力する"""
+    """指定した年月の収支明細を表示する"""
     print("収支明細を表示する年月を入力して下さい(例: 2021/1)")
     year_month  = input("年月 > ")
     try:
@@ -131,6 +137,7 @@ def add_cashflow(cf_date, note, amount):
 
 
 def show_cmd():
+    """使い方を表示する"""
     print("# 使い方")
     print("1: 支出を記録する")
     print("2: 収入を記録する")
