@@ -5,44 +5,54 @@ from datetime import datetime, timedelta
 DATA_FILE = Path("data.tsv")
 
 
-def show_cashflow(year, month):
-    """収支を表示する
-
-    :param month: 収支を表示する年月
-    """
-    if not DATA_FILE.exists():
-        return
-
+def read_data_file(year, month):
+    """データファイルから年月で指定したデータ読み込む"""
     rows = []
-    income = 0
-    payment = 0
-    with open(DATA_FILE) as f:
+    with DATA_FILE.open() as f:
         for row in f:
             row = row.strip()
             cols = row.split("\t")
             cf_year, cf_month, cf_day = int(cols[0]), int(cols[1]), int(cols[2])
-            if cf_year == year and cf_month == month:
-                rows.append({
-                    "cf_date": datetime(cf_year, cf_month, cf_day),
-                    "note": cols[3],
-                    "amount": int(cols[4]),
-                })
+            if cf_year != year or cf_month != month:
+                continue
+            rows.append({
+                "cf_date": datetime(cf_year, cf_month, cf_day),
+                "note": cols[3],
+                "amount": int(cols[4]),
+            })
+    return rows
 
-    month_first = datetime(year, month, 1)
+
+def get_last_date(year, month):
+    """指定した年月の最後の日を取得する"""
     if month == 12:
-        month_last = datetime(year, month, 31)
+        last_date = datetime(year, month, 31)
     else:
-        month_last = datetime(year, month + 1, 1) - timedelta(days=1)
+        last_date = datetime(year, month + 1, 1) - timedelta(days=1)
+    return last_date
 
-    print(f"### {month_first:%Y/%m/%d} - {month_last:%Y/%m/%d} の収支明細 ###")
+
+def show_cashflow(year, month):
+    """収支明細を表示する"""
+    first_date = datetime(year, month, 1)
+    last_date = get_last_date(year, month)
+
+    print(f"### {first_date:%Y/%m/%d} - {last_date:%Y/%m/%d} の収支明細 ###")
     print()
 
-    for row in rows:
-        print(f"{row['cf_date']:%m/%d(%b)}\t{row['note']}\t{row['amount']}")
-        if row["amount"] >= 0:
-            income += row["amount"]
-        else:
-            payment += row["amount"]
+    # 収入の合計
+    income = 0
+    # 支出の合計
+    payment = 0
+    if DATA_FILE.exists():
+        # 指定した年月のデータ
+        rows = read_data_file(year, month)
+        for row in rows:
+            print(f"{row['cf_date']:%m/%d(%a)}\t{row['note']}\t{row['amount']}")
+            if row["amount"] >= 0:
+                income += row["amount"]
+            else:
+                payment += row["amount"]
 
     print()
     print("(収入) - (支出) = (収支)")
@@ -50,11 +60,14 @@ def show_cashflow(year, month):
     print()
 
 
-def show_input_form(is_payment):
-    """収支の入力フォームを表示する
+def show_current_cashflow():
+    """現在の月の収支明細を表示する"""
+    today = datetime.today()
+    show_cashflow(today.year, today.month)
 
-    :param is_payment: 支出フラグ
-    """
+
+def input_cashflow(is_payment):
+    """収支を入力する"""
     if is_payment:
         print("支出を記録します")
     else:
@@ -86,22 +99,25 @@ def show_input_form(is_payment):
         amount = amount * -1
 
     add_cashflow(cf_date, note, amount)
+    show_current_cashflow()
 
-def input_month():
+
+def input_show_month():
     """年月を入力する"""
     print("収支明細を表示する年月を入力して下さい(例: 2021/1)")
     year_month  = input("年月 > ")
-    year_month = datetime.strptime(year_month, "%Y/%m")
-    return year_month.year, year_month.month
+    try:
+        year_month = datetime.strptime(year_month, "%Y/%m")
+    except ValueError as e:
+        print("入力された年月が不正です")
+        print("")
+        return
+    show_cashflow(year_month.year, year_month.month)
+
 
 
 def add_cashflow(cf_date, note, amount):
-    """収支を記録する
-
-    :param cf_date: 収支のあった日付
-    :param cf_date: 収支の内容
-    :param amount: 収支の金額
-    """
+    """収支を記録する"""
     row = "\t".join([
         str(cf_date.year),
         str(cf_date.month),
@@ -110,8 +126,9 @@ def add_cashflow(cf_date, note, amount):
         str(amount),
     ]) + "\n"
 
-    with open(DATA_FILE, "a") as f:
+    with DATA_FILE.open("a") as f:
         f.write(row)
+
 
 def show_cmd():
     print("# 使い方")
@@ -123,18 +140,16 @@ def show_cmd():
 
 
 def main():
-    today = datetime.today()
+    show_current_cashflow()
     while True:
-        show_cashflow(today.year, today.month)
         show_cmd()
         cmd = input("コマンドを入力して下さい > ")
         if cmd == "1":
-            show_input_form(True)
+            input_cashflow(True)
         elif cmd == "2":
-            show_input_form(False)
+            input_cashflow(False)
         elif cmd == "3":
-            year, month = input_month()
-            show_cashflow(year, month)
+            input_show_month()
         elif cmd == "q":
             print("アプリを終了します")
             break
