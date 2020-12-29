@@ -37,7 +37,6 @@ def show_cashflow(year, month):
     print(f"### {month_first:%Y/%m/%d} - {month_last:%Y/%m/%d} の収支明細 ###")
     print()
 
-    print("日付\t内容\t金額")
     for row in rows:
         print(f"{row['cf_date']:%m/%d(%b)}\t{row['note']}\t{row['amount']}")
         if row["amount"] >= 0:
@@ -88,6 +87,13 @@ def show_input_form(is_payment):
 
     add_cashflow(cf_date, note, amount)
 
+def input_month():
+    """年月を入力する"""
+    print("収支明細を表示する年月を入力して下さい(例: 2021/1)")
+    year_month  = input("年月 > ")
+    year_month = datetime.strptime(year_month, "%Y/%m")
+    return year_month.year, year_month.month
+
 
 def add_cashflow(cf_date, note, amount):
     """収支を記録する
@@ -115,6 +121,7 @@ def show_cmd():
     print("q: アプリを終了する")
     print("")
 
+
 def main():
     today = datetime.today()
     while True:
@@ -126,12 +133,11 @@ def main():
         elif cmd == "2":
             show_input_form(False)
         elif cmd == "3":
-            print("収支")
+            year, month = input_month()
+            show_cashflow(year, month)
         elif cmd == "q":
             print("アプリを終了します")
             break
-        elif cmd == "h":
-            print("アプリを終了します")
         else:
             print("不明なコマンドです")
 
