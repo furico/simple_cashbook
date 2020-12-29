@@ -81,7 +81,7 @@ def input_cashflow(is_payment):
     cf_date = input("日付 > ")
     try:
         cf_date = datetime.strptime(cf_date, "%Y/%m/%d")
-    except ValueError as e:
+    except ValueError:
         print("入力された日付が不正です")
         print("")
         return
@@ -93,7 +93,7 @@ def input_cashflow(is_payment):
     amount = input("金額 > ")
     try:
         amount = int(amount)
-    except ValueError as e:
+    except ValueError:
         print("入力された金額が不正です")
         print("")
         return
@@ -111,15 +111,14 @@ def input_cashflow(is_payment):
 def input_show_month():
     """指定した年月の収支明細を表示する"""
     print("収支明細を表示する年月を入力して下さい(例: 2021/1)")
-    year_month  = input("年月 > ")
+    year_month = input("年月 > ")
     try:
         year_month = datetime.strptime(year_month, "%Y/%m")
-    except ValueError as e:
+    except ValueError:
         print("入力された年月が不正です")
         print("")
         return
     show_cashflow(year_month.year, year_month.month)
-
 
 
 def add_cashflow(cf_date, note, amount):
@@ -162,6 +161,7 @@ def main():
             break
         else:
             print("不明なコマンドです")
+
 
 if __name__ == "__main__":
     main()
