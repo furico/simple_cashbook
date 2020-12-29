@@ -20,11 +20,13 @@ def read_data_file(year, month):
             cf_year, cf_month, cf_day = int(cols[0]), int(cols[1]), int(cols[2])
             if cf_year != year or cf_month != month:
                 continue
-            rows.append({
-                "cf_date": datetime(cf_year, cf_month, cf_day),
-                "note": cols[3],
-                "amount": int(cols[4]),
-            })
+            rows.append(
+                {
+                    "cf_date": datetime(cf_year, cf_month, cf_day),
+                    "note": cols[3],
+                    "amount": int(cols[4]),
+                }
+            )
     return rows
 
 
@@ -123,13 +125,18 @@ def input_show_month():
 
 def add_cashflow(cf_date, note, amount):
     """収支を記録する"""
-    row = "\t".join([
-        str(cf_date.year),
-        str(cf_date.month),
-        str(cf_date.day),
-        note,
-        str(amount),
-    ]) + "\n"
+    row = (
+        "\t".join(
+            [
+                str(cf_date.year),
+                str(cf_date.month),
+                str(cf_date.day),
+                note,
+                str(amount),
+            ]
+        )
+        + "\n"
+    )
 
     with DATA_FILE.open("a") as f:
         f.write(row)
