@@ -1,3 +1,6 @@
+"""
+シンプルなおこづかい帳アプリ
+"""
 from pathlib import Path
 from datetime import datetime, timedelta
 
